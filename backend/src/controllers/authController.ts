@@ -13,7 +13,19 @@ export const login = async (req: Request, res: Response) => {
     if (!user) {
       return res.status(401).json({ message: 'NIM atau Password salah.' });
     }
-    const isValid = await bcrypt.compare(password, user.password);
+
+    // --- MODIFIKASI DIMULAI DI SINI ---
+    // Kita cek apakah password di DB sudah di-hash atau masih teks biasa
+    const isHashed = user.password.startsWith('$2a$') || user.password.startsWith('$2b$') || user.password.startsWith('$2y$');
+    
+    let isValid;
+    if (isHashed) {
+        isValid = await bcrypt.compare(password, user.password);
+    } else {
+        isValid = (password === user.password); // Cek teks biasa
+    }
+    // --- MODIFIKASI SELESAI ---
+
     if (!isValid) {
       return res.status(401).json({ message: 'NIM atau Password salah.' });
     }
