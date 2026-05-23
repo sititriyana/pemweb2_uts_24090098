@@ -6,8 +6,9 @@ const app = express();
 
 // 1. CORS yang diizinkan untuk Vercel Anda
 app.use(cors({
-  origin: 'https://pemweb2-uts-24090098.vercel.app',
+  origin: true, // Izinkan origin apapun
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 }));
 
