@@ -5,12 +5,17 @@ import routes from './routes';
 const app = express();
 
 // 1. CORS yang diizinkan untuk Vercel Anda
-app.use(cors({
-  origin: true, // Izinkan origin apapun
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
-}));
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "*"); // Izinkan SEMUA origin
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  
+  // Tangani preflight request (OPTIONS)
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(200);
+  }
+  next();
+});
 
 // 2. Body Parser (Cukup sekali saja)
 app.use(express.json());
