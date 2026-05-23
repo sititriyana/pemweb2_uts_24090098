@@ -1,0 +1,591 @@
+import { useEffect, useState } from 'react';
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  X,
+  Calendar,
+  MapPin,
+  Users,
+  Clock,
+} from 'lucide-react';
+import api from '../lib/api';
+import { Event, CategoryEvent, Pembicara } from '../types';
+import toast from 'react-hot-toast';
+
+const STATUS_COLORS: Record<string, string> = {
+  upcoming: '#800020',
+  ongoing: '#a63d57',
+  completed: '#8b5e67',
+  cancelled: '#dc3545',
+};
+
+const STATUS_LABELS: Record<string, string> = {
+  upcoming: 'Akan Datang',
+  ongoing: 'Berlangsung',
+  completed: 'Selesai',
+  cancelled: 'Dibatalkan',
+};
+
+const defaultForm = {
+  title: '',
+  description: '',
+  date: '',
+  time: '',
+  location: '',
+  capacity: '',
+  status: 'upcoming',
+  imageUrl: '',
+  categoryId: '',
+  pembicaraId: '',
+};
+
+const EventsPage = () => {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [categories, setCategories] = useState<CategoryEvent[]>([]);
+  const [pembicara, setPembicara] = useState<Pembicara[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const [modal, setModal] = useState(false);
+  const [editItem, setEditItem] = useState<Event | null>(null);
+
+  const [form, setForm] = useState(defaultForm);
+  const [saving, setSaving] = useState(false);
+
+  const fetchAll = async () => {
+    setLoading(true);
+
+    try {
+      const [evRes, catRes, spkRes] = await Promise.all([
+        api.get('/events'),
+        api.get('/categories'),
+        api.get('/pembicara'),
+      ]);
+
+      setEvents(evRes.data);
+      setCategories(catRes.data);
+      setPembicara(spkRes.data);
+    } catch {
+      toast.error('Gagal memuat data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAll();
+  }, []);
+
+  const openAdd = () => {
+    setEditItem(null);
+    setForm(defaultForm);
+    setModal(true);
+  };
+
+  const openEdit = (ev: Event) => {
+    setEditItem(ev);
+
+    setForm({
+      title: ev.title,
+      description: ev.description || '',
+      date: ev.date.split('T')[0],
+      time: ev.time,
+      location: ev.location,
+      capacity: String(ev.capacity),
+      status: ev.status,
+      imageUrl: ev.imageUrl || '',
+      categoryId: String(ev.categoryId),
+      pembicaraId: String(ev.pembicaraId),
+    });
+
+    setModal(true);
+  };
+
+  const closeModal = () => {
+    setModal(false);
+    setEditItem(null);
+  };
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    setSaving(true);
+
+    try {
+      if (editItem) {
+        await api.put(`/events/${editItem.id}`, form);
+        toast.success('Event berhasil diperbarui');
+      } else {
+        await api.post('/events', form);
+        toast.success('Event berhasil ditambahkan');
+      }
+
+      closeModal();
+      fetchAll();
+    } catch {
+      toast.error('Gagal menyimpan event');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDelete = async (id: number, title: string) => {
+    if (!confirm(`Hapus event "${title}"?`)) return;
+
+    try {
+      await api.delete(`/events/${id}`);
+      toast.success('Event berhasil dihapus');
+      fetchAll();
+    } catch {
+      toast.error('Gagal menghapus event');
+    }
+  };
+
+  return (
+    <div className="page">
+      <div
+        className="page-header"
+        style={{
+          background: '#ffffff',
+          border: '1px solid #e7cfd5',
+          borderRadius: '10px',
+          padding: '18px',
+        }}
+      >
+        <div>
+          <h1 style={{ color: '#800020' }}>Event</h1>
+          <p style={{ color: '#8b5e67' }}>Kelola semua event</p>
+        </div>
+
+        <button
+          className="btn-primary"
+          onClick={openAdd}
+          style={{
+            background: '#800020',
+            border: 'none',
+          }}
+        >
+          <Plus size={16} /> Tambah Event
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="table-skeleton" />
+      ) : (
+        <div
+          className="table-container"
+          style={{
+            background: '#ffffff',
+            border: '1px solid #e7cfd5',
+            borderRadius: '10px',
+          }}
+        >
+          <table className="data-table">
+            <thead>
+              <tr style={{ background: '#fff0f3' }}>
+                <th>#</th>
+                <th>Judul Event</th>
+                <th>Kategori</th>
+                <th>Pembicara</th>
+                <th>Tanggal</th>
+                <th>Lokasi</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              {events.length === 0 ? (
+                <tr>
+                  <td colSpan={8}>
+                    <div
+                      className="empty-state"
+                      style={{ color: '#8b5e67' }}
+                    >
+                      <Calendar size={40} />
+                      <p>Belum ada event.</p>
+                    </div>
+                  </td>
+                </tr>
+              ) : (
+                events.map((ev, i) => (
+                  <tr
+                    key={ev.id}
+                    style={{
+                      borderBottom: '1px solid #f3d6dd',
+                    }}
+                  >
+                    <td>{i + 1}</td>
+
+                    <td>
+                      <strong style={{ color: '#4b1e28' }}>
+                        {ev.title}
+                      </strong>
+
+                      {ev.capacity > 0 && (
+                        <div
+                          className="table-sub"
+                          style={{ color: '#8b5e67' }}
+                        >
+                          <Users size={12} /> {ev.capacity} peserta
+                        </div>
+                      )}
+                    </td>
+
+                    <td>
+                      <span
+                        className="category-chip"
+                        style={{
+                          background:
+                            (ev.category?.color || '#800020') + '22',
+                          color: ev.category?.color || '#800020',
+                          fontWeight: 600,
+                        }}
+                      >
+                        {ev.category?.name}
+                      </span>
+                    </td>
+
+                    <td style={{ color: '#4b1e28' }}>
+                      {ev.pembicara?.name}
+                    </td>
+
+                    <td>
+                      <div
+                        className="table-date"
+                        style={{ color: '#4b1e28' }}
+                      >
+                        <Calendar size={12} />{' '}
+                        {new Date(ev.date).toLocaleDateString('id-ID')}
+                      </div>
+
+                      <div
+                        className="table-sub"
+                        style={{ color: '#8b5e67' }}
+                      >
+                        <Clock size={12} /> {ev.time}
+                      </div>
+                    </td>
+
+                    <td>
+                      <div
+                        className="table-sub"
+                        style={{ color: '#8b5e67' }}
+                      >
+                        <MapPin size={12} /> {ev.location}
+                      </div>
+                    </td>
+
+                    <td>
+                      <span
+                        className="status-badge"
+                        style={{
+                          background:
+                            STATUS_COLORS[ev.status] + '22',
+                          color: STATUS_COLORS[ev.status],
+                          fontWeight: 600,
+                        }}
+                      >
+                        {STATUS_LABELS[ev.status]}
+                      </span>
+                    </td>
+
+                    <td>
+                      <div className="action-btns">
+                        <button
+                          className="btn-edit"
+                          onClick={() => openEdit(ev)}
+                          style={{
+                            background: '#ffe5eb',
+                            color: '#800020',
+                            border: '1px solid #f5bcc9',
+                          }}
+                        >
+                          <Pencil size={14} />
+                        </button>
+
+                        <button
+                          className="btn-delete"
+                          onClick={() =>
+                            handleDelete(ev.id, ev.title)
+                          }
+                          style={{
+                            background: '#fff1f3',
+                            color: '#b4233c',
+                            border: '1px solid #f0b8c2',
+                          }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {modal && (
+        <div className="modal-overlay" onClick={closeModal}>
+          <div
+            className="modal modal-xl"
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              background: '#ffffff',
+              border: '1px solid #e7cfd5',
+              borderRadius: '12px',
+            }}
+          >
+            <div
+              className="modal-header"
+              style={{
+                background: '#fff0f3',
+                borderBottom: '1px solid #e7cfd5',
+              }}
+            >
+              <h2 style={{ color: '#800020' }}>
+                {editItem ? 'Edit Event' : 'Tambah Event'}
+              </h2>
+
+              <button onClick={closeModal}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <form className="modal-form" onSubmit={handleSave}>
+              <div className="form-group">
+                <label>Judul Event *</label>
+
+                <input
+                  type="text"
+                  value={form.title}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      title: e.target.value,
+                    })
+                  }
+                  placeholder="Judul event"
+                  required
+                />
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Kategori *</label>
+
+                  <select
+                    value={form.categoryId}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        categoryId: e.target.value,
+                      })
+                    }
+                    required
+                  >
+                    <option value="">
+                      -- Pilih Kategori --
+                    </option>
+
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Pembicara *</label>
+
+                  <select
+                    value={form.pembicaraId}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        pembicaraId: e.target.value,
+                      })
+                    }
+                    required
+                  >
+                    <option value="">
+                      -- Pilih Pembicara --
+                    </option>
+
+                    {pembicara.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.name} - {p.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Tanggal *</label>
+
+                  <input
+                    type="date"
+                    value={form.date}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        date: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Waktu *</label>
+
+                  <input
+                    type="time"
+                    value={form.time}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        time: e.target.value,
+                      })
+                    }
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Lokasi *</label>
+
+                  <input
+                    type="text"
+                    value={form.location}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        location: e.target.value,
+                      })
+                    }
+                    placeholder="Auditorium, Zoom, ..."
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Kapasitas</label>
+
+                  <input
+                    type="number"
+                    value={form.capacity}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        capacity: e.target.value,
+                      })
+                    }
+                    placeholder="0 = unlimited"
+                    min="0"
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>Status</label>
+
+                  <select
+                    value={form.status}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        status: e.target.value,
+                      })
+                    }
+                  >
+                    <option value="upcoming">
+                      Akan Datang
+                    </option>
+                    <option value="ongoing">
+                      Berlangsung
+                    </option>
+                    <option value="completed">
+                      Selesai
+                    </option>
+                    <option value="cancelled">
+                      Dibatalkan
+                    </option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>URL Gambar</label>
+
+                  <input
+                    type="url"
+                    value={form.imageUrl}
+                    onChange={(e) =>
+                      setForm({
+                        ...form,
+                        imageUrl: e.target.value,
+                      })
+                    }
+                    placeholder="https://..."
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Deskripsi</label>
+
+                <textarea
+                  value={form.description}
+                  onChange={(e) =>
+                    setForm({
+                      ...form,
+                      description: e.target.value,
+                    })
+                  }
+                  placeholder="Deskripsi event..."
+                  rows={3}
+                />
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn-cancel"
+                  onClick={closeModal}
+                >
+                  Batal
+                </button>
+
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={saving}
+                  style={{
+                    background: '#800020',
+                    border: 'none',
+                  }}
+                >
+                  {saving
+                    ? '...'
+                    : editItem
+                    ? 'Simpan'
+                    : 'Tambah'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default EventsPage;
