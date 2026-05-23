@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: 'https://pemweb2uts24090098-production.up.railway.app/api',
+  withCredentials: true,
 });
 
 api.interceptors.request.use((config) => {
