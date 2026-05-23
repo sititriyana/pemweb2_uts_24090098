@@ -6,10 +6,10 @@ const app = express();
 
 // 1. CORS yang diizinkan untuk Vercel Anda
 app.use(cors({
-  origin: '*', // Benar-benar buka untuk semuanya
+  origin: true, // Izinkan origin apapun
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['*'], // Izinkan semua header
-  credentials: false // Ubah ke false sementara untuk tes, karena kadang 'true' konflik dengan origin '*'
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
 
 // 2. Body Parser (Cukup sekali saja)

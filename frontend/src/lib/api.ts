@@ -1,8 +1,8 @@
 import axios from 'axios';
 
 const api = axios.create({
-
-  baseURL: '/api' 
+  // Tambahkan /api di akhir URL Railway Anda agar sinkron dengan backend
+  baseURL: 'https://pemweb2uts24090098-production.up.railway.app/api'
 });
 
 api.interceptors.request.use((config) => {
