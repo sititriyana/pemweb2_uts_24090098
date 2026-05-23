@@ -1,5 +1,6 @@
 import express from 'express';
 import cors from 'cors';
+import routes from './routes';
 
 const app = express();
 
@@ -10,19 +11,18 @@ const allowedOrigins = [
 ].filter(Boolean);
 
 // MENGAKTIFKAN CORS
+// MENGAKTIFKAN CORS (Cukup satu blok ini saja)
 app.use(cors({
-  origin: function (origin, callback) {
-    // izinkan request tanpa origin (seperti dari mobile apps atau curl)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true // PENTING: Jika Anda menggunakan Session atau Cookies
+  origin: [
+    'http://localhost:5173',
+    'https://uts-pemweb2-24090098.vercel.app'
+  ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true
 }));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
