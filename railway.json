@@ -1,11 +1,20 @@
 {
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
-    "builder": "NIXPACKS",
-    "root": "backend"
+    "builder": "NIXPACKS"
+  },
+  "phases": {
+    "setup": {
+      "nixPkgs": ["nodejs"]
+    },
+    "install": {
+      "cmds": ["cd backend && npm install"]
+    },
+    "build": {
+      "cmds": ["cd backend && npx prisma generate && npx tsc"]
+    }
   },
   "deploy": {
-    "startCommand": "npm run start",
-    "restartPolicyType": "ON_FAILURE"
+    "startCommand": "cd backend && node dist/index.js"
   }
 }
