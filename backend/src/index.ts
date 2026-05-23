@@ -10,13 +10,9 @@ const allowedOrigins = [
   process.env.FRONTEND_URL
 ].filter(Boolean);
 
-// MENGAKTIFKAN CORS
 // MENGAKTIFKAN CORS (Cukup satu blok ini saja)
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'https://uts-pemweb2-24090098.vercel.app'
-  ],
+  origin: 'https://pemweb2-uts-24090098.vercel.app', // Sesuaikan dengan domain Vercel Anda yang tepat
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true
 }));
