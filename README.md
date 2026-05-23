@@ -9,8 +9,8 @@ Universitas Politeknik Harapan Bersama Tegal
 ## Biodata Mahasiswa
 
 
-| Nama | Denta Adi Ramadhani |
-| NIM | 24090111 |
+| Nama | Siti Triyana |
+| NIM | 24090098 |
 | Program Studi | D-4 Teknik Informatika |
 | Fakultas | Sekolah Vokasi |
 | Kampus | Jalan Mataram No.9, Kota Tegal |
@@ -20,8 +20,8 @@ Universitas Politeknik Harapan Bersama Tegal
 ## Akun Login untuk Demo
 
 | Field | Value |
-| NIM | 24090111 |
-| Password | 24090111 |
+| NIM | 24090098 |
+| Password | 24090098 |
 
 ---
 
