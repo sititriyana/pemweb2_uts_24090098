@@ -7,10 +7,25 @@ dotenv.config();
 
 const app = express();
 
+// Daftar domain yang diizinkan (Lokal & Vercel)
+const allowedOrigins = [
+  'http://localhost:5173',
+  'https://uts-pemweb2-24090098.vercel.app',
+  process.env.FRONTEND_URL
+].filter(Boolean); // Menghapus nilai kosong jika ada
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: function (origin, callback) {
+    // Izinkan jika tanpa origin (seperti Postman) atau jika origin terdaftar di allowedOrigins
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Blocked by CORS'));
+    }
+  },
   credentials: true,
 }));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -27,5 +42,3 @@ app.listen(PORT, () => {
 });
 
 export default app;
-
-

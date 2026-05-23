@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://uts-pemweb2-24090098-jnch.vercel.app/api',
+  baseURL: 'https://uts-pemweb2-24090098-lumt.vercel.app/api',
 })
 
 api.interceptors.request.use((config) => {
