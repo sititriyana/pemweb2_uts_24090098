@@ -55,7 +55,12 @@ export const register = async (req: Request, res: Response) => {
       data: { nim, name, password: hashedPassword },
     });
     return res.status(201).json({ message: 'User berhasil dibuat.', user: { id: user.id, nim: user.nim, name: user.name } });
-  } catch (error) {
-    return res.status(500).json({ message: 'Server error', error });
-  }
-};
+  } catch (error: any) {
+    // Tambahkan baris ini agar kamu bisa melihat error aslinya di log terminal/Railway!
+    console.error("❌ DETAIL EROR BACKEND:", error.message || error);
+    
+    return res.status(500).json({ 
+      message: 'Server error', 
+      error: error.message || error 
+    });
+  }};
